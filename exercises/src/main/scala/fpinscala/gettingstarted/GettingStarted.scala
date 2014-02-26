@@ -14,7 +14,7 @@ object MyModule {
   }
 
   def main(args: Array[String]): Unit =
-    println(formatAbs(-42))
+    println(formatResult("fibonacci", 1, fib))
 
   // A definition of factorial, using a local, tail recursive function  
   def factorial(n: Int): Int = {
@@ -35,8 +35,14 @@ object MyModule {
   }
 
   // Exercise 1: Write a function to compute the nth fibonacci number
+  def fib(n: Int): Int = {
+    @annotation.tailrec
+    def go(pprev: Int, prev: Int, index: Int, indexGoal: Int): Int =
+      if (index >= indexGoal) prev
+      else go(prev, prev + pprev, index+1, indexGoal)
 
-  def fib(n: Int): Int = ???
+    go(1, 1, 1, n-1)
+  }
 
   // This definition and `formatAbs` are very similar..
   private def formatFactorial(n: Int) = { 
@@ -48,7 +54,7 @@ object MyModule {
   // accept a _function_ as a parameter
   def formatResult(name: String, n: Int, f: Int => Int) = { 
     val msg = "The %s of %d is %d." 
-    msg.format(n, f(n))
+    msg.format(name, n, f(n))
   }
 }
 
@@ -109,6 +115,12 @@ object MonomorphicBinarySearch {
 
 object PolymorphicFunctions {
   
+  def main(args: Array[String]): Unit =
+    println(isSorted(Array(1,2,3,4,5,6,7), (a: Int, b: Int) => {
+      //println(s"is $a greater then $b: " + (a > b))
+      a > b
+    }))
+  
   // Here's a polymorphic version of `binarySearch`, parameterized on 
   // a function for testing whether an `A` is greater than another `A`. 
   def binarySearch[A](as: Array[A], key: A, gt: (A,A) => Boolean): Int = {
@@ -129,28 +141,35 @@ object PolymorphicFunctions {
 
   // Exercise 2: Implement a polymorphic function to check whether 
   // an `Array[A]` is sorted
-  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = ??? 
+  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
+    @annotation.tailrec
+    def go(index: Int): Boolean = {
+      if (index == as.length) true 
+      else {
+        if (index>0 && !gt(as(index), as(index-1))) false
+        else go(index+1)
+      }
+    }
+    go(0)
+  } 
   
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
 
   // Exercise 3: Implement `partial1`.
-  
   def partial1[A,B,C](a: A, f: (A,B) => C): B => C = 
-    ??? 
+    (b: B) => f(a, b) 
   
   // Exercise 4: Implement `curry`.
-
   // Note that `=>` associates to the right, so we could 
   // write the return type as `A => B => C`
   def curry[A,B,C](f: (A, B) => C): A => (B => C) =
-    ??? 
+    (a: A)=>((b: B) => f(a, b)) 
 
   // NB: The `Function2` trait has a `curried` method already
-
   // Exercise 5: Implement `uncurry`
   def uncurry[A,B,C](f: A => B => C): (A, B) => C =
-    ??? 
+    (a: A, b: B) => f(a)(b) 
 
   /*
   NB: There is a method on the `Function` object in the standard library,
@@ -163,7 +182,6 @@ object PolymorphicFunctions {
   */
 
   // Exercise 6: Implement `compose`
-
   def compose[A,B,C](f: B => C, g: A => B): A => C =
-    ??? 
+    (a:A) => f(g(a))
 }
